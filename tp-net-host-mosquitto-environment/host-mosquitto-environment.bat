@@ -1,6 +1,7 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+cls
 
 for /f "tokens=*" %%a in ('echo prompt $E^| cmd') do set "ESC=%%a"
 set "CYAN=%ESC%[36m"
@@ -15,14 +16,13 @@ set "ACL_FILE=%~dp0acl"
 set "PASSWD_FILE=%~dp0passwd"
 set "PORT=1881"
 
-:: ═══════════════════════════════════════════════════════════════════════════════
 echo.
 echo %CYAN%  Mosquitto Launcher%RESET%
 echo  -------------------------------------------------------------------------------
-:: ═══════════════════════════════════════════════════════════════════════════════
+echo.
 
 :: -------------------------------------------------------
-:: Tự khởi tạo các file nếu chưa có
+:: Tu khoi tao cac file neu chua co
 :: -------------------------------------------------------
 
 if not exist "%ACL_FILE%" (
@@ -39,6 +39,20 @@ if not exist "%ACL_FILE%" (
     echo # user: admin>> "%ACL_FILE%"
     echo user admin>> "%ACL_FILE%"
     echo topic readwrite #>> "%ACL_FILE%"
+    echo.>> "%ACL_FILE%"
+    echo # user: watcher>> "%ACL_FILE%"
+    echo user watcher>> "%ACL_FILE%"
+    echo topic readwrite winsv_wtpsvn/#>> "%ACL_FILE%"
+    echo topic readwrite winsv_ftpsvn/#>> "%ACL_FILE%"
+    echo topic readwrite winsv_atpsvn/#>> "%ACL_FILE%"
+    echo topic readwrite winsv_ttpsvn/#>> "%ACL_FILE%"
+    echo.>> "%ACL_FILE%"
+    echo # user: facade>> "%ACL_FILE%"
+    echo user facade>> "%ACL_FILE%"
+    echo topic read winsv_wtpsvn/#>> "%ACL_FILE%"
+    echo topic read winsv_ftpsvn/#>> "%ACL_FILE%"
+    echo topic read winsv_atpsvn/#>> "%ACL_FILE%"
+    echo topic read winsv_ttpsvn/#>> "%ACL_FILE%"
 )
 
 if not exist "%CONF_FILE%" (
@@ -50,8 +64,6 @@ if not exist "%CONF_FILE%" (
     echo allow_anonymous true>> "%CONF_FILE%"
     echo password_file %PASSWD_FILE%>> "%CONF_FILE%"
     echo acl_file %ACL_FILE%>> "%CONF_FILE%"
-    echo.>> "%CONF_FILE%"
-    echo # log_type all>> "%CONF_FILE%"
 )
 
 if not exist "%CONFIG_FILE%" (
@@ -59,7 +71,7 @@ if not exist "%CONFIG_FILE%" (
 )
 
 :: -------------------------------------------------------
-:: Hiển thị trạng thái các file
+:: Hien thi trang thai cac file
 :: -------------------------------------------------------
 echo.
 echo  Files:
@@ -81,44 +93,40 @@ echo.
 echo  -------------------------------------------------------------------------------
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════════
-:: BƯỚC 1 - Kiểm tra đường dẫn Mosquitto
-:: ═══════════════════════════════════════════════════════════════════════════════
-
-echo  %CYAN%[INFO]%RESET%  Bước 1 - Kiểm tra đường dẫn Mosquitto...
+:: -------------------------------------------------------
+:: BUOC 1 - Kiem tra duong dan Mosquitto
+:: -------------------------------------------------------
+echo  %CYAN%[INFO]%RESET%  Buoc 1 - Kiem tra duong dan Mosquitto...
 echo.
 
-:: Ưu tiên PATH hệ thống
 where mosquitto >nul 2>&1
 if %ERRORLEVEL% == 0 (
     set "MOSQUITTO_EXE=mosquitto"
-    echo  %GREEN%[DONE]%RESET%  Bước 1 - Mosquitto tìm thấy trong PATH hệ thống.
+    echo  %GREEN%[DONE]%RESET%  Buoc 1 - Mosquitto tim thay trong PATH he thong.
     echo.
     goto :step2
 )
 
-:: Đọc đường dẫn từ file
 set /p MOSQUITTO_EXE=<"%CONFIG_FILE%"
 
-:: Kiểm tra còn chứa chữ "Example:" là chưa cấu hình
 echo !MOSQUITTO_EXE! | findstr /i "^Example:" >nul 2>&1
 if %ERRORLEVEL% == 0 (
-    echo  %YELLOW%[SETUP]%RESET%  Bước 1 - Chưa cấu hình đường dẫn Mosquitto.
+    echo  %YELLOW%[SETUP]%RESET%  Buoc 1 - Chua cau hinh duong dan Mosquitto.
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
-    echo    1. Tải và cài đặt Mosquitto phiên bản 2.1.2 ^(x64^) hoặc mới hơn:
+    echo    1. Tai va cai dat Mosquitto phien ban 2.1.2 ^(x64^) hoac moi hon:
     echo       https://mosquitto.org/download/
     echo.
-    echo    2. Mở file .mosquitto-path:
+    echo    2. Mo file .mosquitto-path:
     echo       %CONFIG_FILE%
     echo.
-    echo    3. Xoá toàn bộ nội dung và dán đường dẫn thực tới mosquitto.exe
-    echo       ^(Xoá cả chữ "Example: " và thay bằng đường dẫn thật^)
+    echo    3. Xoa toan bo noi dung va dan duong dan thuc toi mosquitto.exe
+    echo       ^(Xoa ca chu "Example: " va thay bang duong dan that^)
     echo.
     echo       Example: C:\Program Files\mosquitto\mosquitto.exe
     echo.
-    echo    4. Lưu file và chạy lại run.bat.
+    echo    4. Luu file va chay lai run.bat.
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
@@ -126,13 +134,12 @@ if %ERRORLEVEL% == 0 (
     exit /b 1
 )
 
-:: Kiểm tra file có tồn tại không
 if not exist "!MOSQUITTO_EXE!" (
-    echo  %RED%[ERROR]%RESET%  Bước 1 - Đường dẫn không hợp lệ: !MOSQUITTO_EXE!
+    echo  %RED%[ERROR]%RESET%  Buoc 1 - Duong dan khong hop le: !MOSQUITTO_EXE!
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
-    echo    Kiểm tra lại nội dung trong file .mosquitto-path:
+    echo    Kiem tra lai noi dung trong file .mosquitto-path:
     echo    %CONFIG_FILE%
     echo.
     echo    Example: C:\Program Files\mosquitto\mosquitto.exe
@@ -143,28 +150,34 @@ if not exist "!MOSQUITTO_EXE!" (
     exit /b 1
 )
 
-echo  %GREEN%[DONE]%RESET%  Bước 1 - Đường dẫn hợp lệ: !MOSQUITTO_EXE!
+echo  %GREEN%[DONE]%RESET%  Buoc 1 - Duong dan hop le: !MOSQUITTO_EXE!
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════════
-:: BƯỚC 2 - Kiểm tra passwd
-:: ═══════════════════════════════════════════════════════════════════════════════
+:: -------------------------------------------------------
+:: BUOC 2 - Kiem tra passwd
+:: -------------------------------------------------------
 :step2
-echo  %CYAN%[INFO]%RESET%  Bước 2 - Kiểm tra file passwd...
+echo  %CYAN%[INFO]%RESET%  Buoc 2 - Kiem tra file passwd...
 echo.
 
 if not exist "%PASSWD_FILE%" (
-    echo  %YELLOW%[SETUP]%RESET%  Bước 2 - Chưa có file passwd.
+    echo  %YELLOW%[SETUP]%RESET%  Buoc 2 - Chua co file passwd.
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
-    echo    1. Mở cmd và trỏ tới thư mục cài đặt Mosquitto ^(nơi có mosquitto_passwd.exe^)
+    echo    1. Mo cmd va tro toi thu muc cai dat Mosquitto ^(noi co mosquitto_passwd.exe^)
     echo.
-    echo    2. Chạy lệnh sau và nhập password khi được yêu cầu:
+    echo    2. Chay lenh sau va nhap password tao user admin khi duoc yeu cau:
     echo.
-    echo       %GREEN%mosquitto_passwd -c "%PASSWD_FILE%" admin%RESET%
+    echo  %GREEN%mosquitto_passwd -c "%PASSWD_FILE%" admin%RESET%
     echo.
-    echo    3. Chạy lại run.bat sau khi tạo xong.
+    echo    3. Chay hai lenh sau de tao user watcher va facade ^(khong co lenh -c^):
+    echo.
+    echo  %GREEN%mosquitto_passwd "%PASSWD_FILE%" watcher%RESET%
+    echo.
+    echo  %GREEN%mosquitto_passwd "%PASSWD_FILE%" facade%RESET%
+    echo.
+    echo    4. Chay lai run.bat sau khi tao xong.
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
@@ -172,16 +185,15 @@ if not exist "%PASSWD_FILE%" (
     exit /b 1
 )
 
-echo  %GREEN%[DONE]%RESET%  Bước 2 - File passwd tồn tại.
+echo  %GREEN%[DONE]%RESET%  Buoc 2 - File passwd ton tai.
 echo.
 
-:: ═══════════════════════════════════════════════════════════════════════════════
-:: Kiểm tra phiên bản
-:: ═══════════════════════════════════════════════════════════════════════════════
-echo  %CYAN%[INFO]%RESET%  Kiểm tra phiên bản Mosquitto...
+:: -------------------------------------------------------
+:: Kiem tra phien ban
+:: -------------------------------------------------------
+echo  %CYAN%[INFO]%RESET%  Kiem tra phien ban Mosquitto...
 echo.
 
-:: Ghi stdout+stderr ra file tạm, đọc dòng chứa "version"
 set "MOSQ_VER_TMP=%TEMP%\mosq_ver_%RANDOM%.txt"
 "!MOSQUITTO_EXE!" --version 1>"%MOSQ_VER_TMP%" 2>&1
 
@@ -192,11 +204,11 @@ for /f "usebackq tokens=3 delims= " %%v in ("%MOSQ_VER_TMP%") do (
 del "%MOSQ_VER_TMP%" >nul 2>&1
 
 if "!MOSQUITTO_VERSION!"=="" (
-    echo  %RED%[ERROR]%RESET%  Không thể kiểm tra phiên bản Mosquitto.
+    echo  %RED%[ERROR]%RESET%  Khong the kiem tra phien ban Mosquitto.
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
-    echo    Đảm bảo đường dẫn trong .mosquitto-path trỏ đúng tới mosquitto.exe
+    echo    Dam bao duong dan trong .mosquitto-path tro dung toi mosquitto.exe
     echo    %CONFIG_FILE%
     echo.
     echo  -------------------------------------------------------------------------------
@@ -215,11 +227,11 @@ if !VER_MAJOR! EQU 2 if !VER_MINOR! LSS 1 goto :ver_error
 goto :run
 
 :ver_error
-echo  %RED%[ERROR]%RESET%  Phiên bản !MOSQUITTO_VERSION! không đủ yêu cầu ^(>= 2.1.2^)
+echo  %RED%[ERROR]%RESET%  Phien ban !MOSQUITTO_VERSION! khong du yeu cau ^(>= 2.1.2^)
 echo.
 echo  -------------------------------------------------------------------------------
 echo.
-echo    Tải tại : https://mosquitto.org/download/
+echo    Tai tai : https://mosquitto.org/download/
 echo    File    : mosquitto-2.1.2-install-windows-x64.exe
 echo.
 echo  -------------------------------------------------------------------------------
@@ -227,9 +239,9 @@ echo.
 pause
 exit /b 1
 
-:: ═══════════════════════════════════════════════════════════════════════════════
-:: Tất cả OK - Khởi động Mosquitto
-:: ═══════════════════════════════════════════════════════════════════════════════
+:: -------------------------------------------------------
+:: Tat ca OK - Khoi dong Mosquitto
+:: -------------------------------------------------------
 :run
 echo  %GREEN%[OK]%RESET%    Version  : !MOSQUITTO_VERSION!
 echo  %GREEN%[OK]%RESET%    Path     : !MOSQUITTO_EXE!
@@ -237,7 +249,7 @@ echo  %GREEN%[OK]%RESET%    Config   : %CONF_FILE%
 echo  %GREEN%[OK]%RESET%    ACL      : %ACL_FILE%
 echo  %GREEN%[OK]%RESET%    Passwd   : %PASSWD_FILE%
 echo.
-echo  %CYAN%[INFO]%RESET%  Kiểm tra port %PORT%...
+echo  %CYAN%[INFO]%RESET%  Kiem tra port %PORT%...
 echo.
 set "PORT_BUSY=0"
 for /f "tokens=5" %%p in ('netstat -ano ^| findstr /r ":%PORT% "') do set "PORT_PID=%%p" & set "PORT_BUSY=1"
@@ -245,14 +257,14 @@ for /f "tokens=5" %%p in ('netstat -ano ^| findstr /r ":%PORT% "') do set "PORT_
 if "!PORT_BUSY!"=="1" (
     set "PORT_PNAME=unknown"
     for /f "tokens=1 delims=," %%n in ('tasklist /fi "PID eq !PORT_PID!" /fo csv /nh 2^>nul') do set "PORT_PNAME=%%~n"
-    echo  %RED%[ERROR]%RESET%  Port %PORT% đang bị chiếm.
+    echo  %RED%[ERROR]%RESET%  Port %PORT% dang bi chiem.
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
     echo    Process : !PORT_PNAME!
     echo    PID     : !PORT_PID!
     echo.
-    echo    Tắt process trên rồi chạy lại run.bat.
+    echo    Tat process tren roi chay lai run.bat.
     echo.
     echo  -------------------------------------------------------------------------------
     echo.
@@ -260,11 +272,11 @@ if "!PORT_BUSY!"=="1" (
     exit /b 1
 )
 
-echo  %GREEN%[OK]%RESET%    Port %PORT% sẵn sàng.
+echo  %GREEN%[OK]%RESET%    Port %PORT% san sang.
 echo.
 echo  -------------------------------------------------------------------------------
 echo.
-echo  %CYAN%[INFO]%RESET%  Khởi động Mosquitto...
+echo  %CYAN%[INFO]%RESET%  Khoi dong Mosquitto...
 echo.
 "!MOSQUITTO_EXE!" -c "%CONF_FILE%" -v
 endlocal
