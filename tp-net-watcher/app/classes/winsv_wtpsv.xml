@@ -1,0 +1,38 @@
+<service>
+  <id>winsv_wtpsvn</id>
+  <name>Window Service WTPSV</name>
+  <description>TPServer watcher background service</description>
+
+  <executable>%BASE%\winsv_wtpsvn.exe</executable>
+  <workingdirectory>%BASE%</workingdirectory>
+
+  <env name="APP_API_PORT" value="1882"/>
+  <env name="REDIS_SERVER_PORT" value="6379"/>
+  <env name="MQTT_SERVER_PORT" value="1881"/>
+  <env name="REDIS_SERVER_HOST" value="localhost"/>
+  <env name="MQTT_SERVER_HOST" value="localhost"/>
+
+  <env name="MQTT_OPT_CLEAN_SESSION" value="true"/>
+  <env name="MQTT_OPT_CONNECTION_TIMEOUT" value="30"/>
+  <env name="MQTT_OPT_KEEP_ALIVE" value="60"/>
+  <env name="MQTT_OPT_FALLBACK_QOS" value="0"/>
+
+  <env name="REDIS_WORKER_PREFIX_THREAD_SET_NAME" value="worker:"/>
+  <env name="REDIS_WORKER_THREAD_HEARTBEAT_EXPIRE" value="10"/>
+  <env name="REDIS_WORKER_THREAD_HEARTBEAT_INTERVAL" value="5000"/>
+  <env name="REDIS_WORKER_THREAD_COUNT" value="16"/>
+
+  <env name="REDIS_JOB_PREFIX_SET_NAME" value="job:"/>
+  <env name="REDIS_JOB_QUEUED_EXPIRED_TIME" value="60"/>
+  <env name="REDIS_JOB_EXECUTED_EXPIRED_TIME" value="60"/>
+  <env name="REDIS_JOB_DONE_EXPIRED_TIME" value="60"/>
+  <env name="REDIS_JOB_FAILED_EXPIRED_TIME" value="60"/>
+
+  <env name="AGENT_MAP_FILE" value="agent_map.list.json"/>
+
+  <startmode>Automatic</startmode>
+  <onfailure action="restart" delay="10 sec"/>
+
+  <logpath>%BASE%\logs</logpath>
+  <log mode="roll"/>
+</service>
