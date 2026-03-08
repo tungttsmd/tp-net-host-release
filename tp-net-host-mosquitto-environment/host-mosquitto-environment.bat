@@ -10,6 +10,7 @@ set "YELLOW=%ESC%[33m"
 set "RED=%ESC%[31m"
 set "RESET=%ESC%[0m"
 
+set "GRANT_BAT=%~dp0passwd-granting.bat"
 set "CONFIG_FILE=%~dp0.mosquitto-path"
 set "CONF_FILE=%~dp0mosquitto.conf"
 set "ACL_FILE=%~dp0acl"
@@ -20,6 +21,31 @@ echo.
 echo %CYAN%  Mosquitto Launcher%RESET%
 echo  -------------------------------------------------------------------------------
 echo.
+
+:: -------------------------------------------------------
+:: Kiem tra duong dan co chua dau ngoac tron khong
+:: -------------------------------------------------------
+set "_PATH_CHECK=%~dp0"
+if not "!_PATH_CHECK!"=="!_PATH_CHECK:(=!" goto :path_has_paren
+if not "!_PATH_CHECK!"=="!_PATH_CHECK:)=!" goto :path_has_paren
+goto :path_ok
+
+:path_has_paren
+echo  %RED%[ERROR]%RESET%  Duong dan chua dau ngoac tron: %~dp0
+echo.
+echo  -------------------------------------------------------------------------------
+echo.
+echo    Duong dan chua script khong duoc co dau ngoac tron ^( ^) o bat ky dau.
+echo    Vi du loi: C:\Users\1\New folder ^(2^)\...
+echo.
+echo    Vui long di chuyen script den thu muc khong chua dau ngoac, sau do chay lai.
+echo.
+echo  -------------------------------------------------------------------------------
+echo.
+pause
+exit /b 1
+
+:path_ok
 
 :: -------------------------------------------------------
 :: Tu khoi tao cac file neu chua co
@@ -56,14 +82,14 @@ if not exist "%ACL_FILE%" (
 )
 
 if not exist "%CONF_FILE%" (
-    echo # Mosquitto Configuration> "%CONF_FILE%"
-    echo.>> "%CONF_FILE%"
-    echo listener 1881>> "%CONF_FILE%"
-    echo bind_address 127.0.0.1>> "%CONF_FILE%"
-    echo.>> "%CONF_FILE%"
-    echo allow_anonymous true>> "%CONF_FILE%"
-    echo password_file %PASSWD_FILE%>> "%CONF_FILE%"
-    echo acl_file %ACL_FILE%>> "%CONF_FILE%"
+    echo # Mosquitto Configuration> "!CONF_FILE!"
+    echo.>> "!CONF_FILE!"
+    echo listener 1881>> "!CONF_FILE!"
+    echo bind_address 127.0.0.1>> "!CONF_FILE!"
+    echo.>> "!CONF_FILE!"
+    echo allow_anonymous true>> "!CONF_FILE!"
+    echo password_file !PASSWD_FILE!>> "!CONF_FILE!"
+    echo acl_file !ACL_FILE!>> "!CONF_FILE!"
 )
 
 if not exist "%CONFIG_FILE%" (
@@ -188,9 +214,48 @@ if not exist "%PASSWD_FILE%" (
 echo  %GREEN%[DONE]%RESET%  Buoc 2 - File passwd ton tai.
 echo.
 
+
+:: -------------------------------------------------------
+:: BUOC 3 - Kiem tra quyen Local System tren file passwd
+:: -------------------------------------------------------
+echo  %CYAN%[INFO]%RESET%  Buoc 3 - Kiem tra quyen Local System tren file passwd...
+echo.
+echo  %CYAN%[INFO]%RESET%  Buoc 3 - Quyen hien tai:
+echo.
+icacls "%~dp0passwd"
+echo.
+echo  %CYAN%[INFO]%RESET%  Buoc 3 - Xoa quyen cu neu co:
+echo.
+icacls "%~dp0passwd" /remove:g "NT AUTHORITY\SYSTEM"
+echo.
+echo  %CYAN%[INFO]%RESET%  Buoc 3 - Quyen sau khi xoa:
+echo.
+icacls "%~dp0passwd"
+echo.
+echo  %CYAN%[INFO]%RESET%  Buoc 3 - Ghi quyen LOCAL SYSTEM cho he thong:
+echo.
+icacls "%~dp0passwd" /grant "NT AUTHORITY\SYSTEM:(R)"
+echo.
+echo  %CYAN%[INFO]%RESET%  Buoc 3 - Quyen sau khi duoc cap lai:
+echo.
+icacls "%~dp0passwd"
+
+if %ERRORLEVEL% NEQ 0 (
+    echo  %RED%[ERROR]%RESET%  Cap quyen that bai. Chay lai voi quyen Administrator.
+    echo.
+    pause
+    exit /b 1
+)
+echo.
+echo  %GREEN%[DONE]%RESET%  Buoc 3 - Da ghi quyen cho Local System thanh cong.
+echo.
+goto :check_version
+
 :: -------------------------------------------------------
 :: Kiem tra phien ban
 :: -------------------------------------------------------
+:check_version
+
 echo  %CYAN%[INFO]%RESET%  Kiem tra phien ban Mosquitto...
 echo.
 
